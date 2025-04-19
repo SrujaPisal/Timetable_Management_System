@@ -1,0 +1,131 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* General Page Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to right, #E0E0EF, #505081);
+    color: white;
+    display: flex;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 250px;
+    background: #272757;
+    padding: 20px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.sidebar-btn {
+    width: 100%;
+    padding: 10px;
+    background: #3F3F6A;
+    border: none;
+    color: white;
+    font-size: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.sidebar-btn:hover {
+    background: #141428;
+}
+
+/* Main Content Styling */
+.main-content {
+    margin-left: 270px;
+    width: calc(100% - 270px);
+    padding: 20px;
+    text-align: center;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.logout-btn, .generate-btn {
+    padding: 12px 18px;
+    background: #3F3F6A;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.logout-btn:hover, .generate-btn:hover {
+    background: #141428;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    margin-top: 20px;
+}
+
+button {
+    margin-top: 15px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #3F3F6A;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #141428;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+    }
+    .main-content {
+        margin-left: 220px;
+    }
+}
+.generate-btn {
+    background-color: #2d2d6e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.generate-btn:disabled {
+    background-color: #8888aa;
+    cursor: not-allowed;
+}

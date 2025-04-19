@@ -1,0 +1,258 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* General Page Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to right, #E0E0EF, #505081);
+    color: white;
+    text-align: center;
+}
+
+/* Header */
+h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+h2 {
+    margin-top: 20px;
+}
+
+/* Tabs Styling */
+/* Tabs Styling */
+.tabs {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Enhanced Sidebar Views Buttons */
+.tab-btn {
+    background-color: #272757;
+    color: white;
+    padding: 16px 24px; /* Increased padding for larger buttons */
+    border: none;
+    cursor: pointer;
+    margin: 12px 0;
+    border-radius: 10px; /* More rounded corners */
+    transition: all 0.3s ease-in-out;
+    font-weight: 600;
+    font-size: 18px; /* Slightly larger text */
+    width: 200px; /* Fixed width for uniformity */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tab-btn:hover {
+    background-color: #141428;
+    transform: scale(1.07);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Timetable Container */
+.timetable {
+    display: none;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
+    width: 85%;
+    margin: 20px auto;
+    text-align: center;
+    color: #22223C;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #D5D5E2;
+    color: #22223C;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease;
+}
+
+th, td {
+    border: 1px solid #3F3F6A;
+    padding: 15px;
+    text-align: center;
+    font-size: 14px;
+}
+
+th {
+    background: linear-gradient(to right, #272757, #3f3f6a);
+    color: white;
+    font-weight: bold;
+}
+
+thead {
+    background: linear-gradient(to right, #272757, #3f3f6a);
+}
+
+tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+tr:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Leave and Available Slots */
+.nottaken {
+    background-color: #ff4d4d;
+    color: white;
+    font-weight: bold;
+}
+
+.taken {
+    background-color: #4caf50;
+    color: white;
+    font-weight: bold;
+}
+
+/* Dropdowns Styling */
+select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #3f3f6a;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 16px;
+    margin: 10px 0;
+    width: 70%;
+    transition: background-color 0.3s ease;
+}
+
+select:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Flex Layout */
+.container {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background-color: rgba(39, 39, 87, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+    box-shadow: 4px 0 6px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.sidebar button {
+    margin: 10px 0;
+    width: 80%;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Timetable Card */
+.timetable-card {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 10px;
+        min-height: auto;
+        position: relative;
+    }
+
+    .sidebar button {
+        width: auto;
+        padding: 10px 15px;
+    }
+
+    .main-content {
+        width: 100%;
+        padding: 20px 10px;
+    }
+
+    .timetable {
+        width: 95%;
+    }
+
+    select {
+        width: 85%;
+    }
+
+    .tab-btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    table {
+        font-size: 12px;
+    }
+}
+
+
+#download-program-pdf, #download-professor-pdf {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+#download-program-pdf:hover, #download-professor-pdf:hover {
+    background-color: #3e8e41;
+}

@@ -1,0 +1,110 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #E0E0EF, #505081);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Login Container */
+.login-container {
+    background-color: #3F3F6A;
+    padding: 30px;
+    border-radius: 12px;
+    width: 400px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Input Group */
+.input-group {
+    display: flex;
+    align-items: center;
+    background: #D5D5E2;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 12px;
+}
+
+.input-group i {
+    margin-right: 12px;
+    color: #3F3F6A;
+}
+
+.input-group input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    width: 100%;
+    background: transparent;
+    color: #22223C;
+}
+
+/* Options */
+.options {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.options label {
+    display: flex;
+    align-items: center;
+}
+
+.options a {
+    color: #eeeef5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.options a:hover {
+    text-decoration: underline;
+    color: #0F0F1F;
+}
+
+/* Login Button */
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: #272757;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.login-btn:hover {
+    background: #141428;
+}
+
+/* Footer Links */
+.footer {
+    margin-top: 15px;
+    font-size: 12px;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+    font-weight: 600;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+h3 {
+    font-weight: bold;
+}

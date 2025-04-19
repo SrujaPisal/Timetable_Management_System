@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body onload="checkLoginStatus(); loadSelectedPrograms();"> <!-- Fixed function name -->
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <button class="sidebar-btn" onclick="showPrograms()">Programs</button>
+        <button class="sidebar-btn" onclick="showCourses()">Courses</button> <!-- Added showCourses button -->
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Admin Dashboard</h2>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+
+        <div class="container" id="content-area">
+            <h3>Welcome! Select an option from sidebar.</h3>
+
+            <!-- Program Section -->
+            <div id="programSection" style="display: none; margin-top: 20px;">
+                <label for="programs">Select Program:</label>
+                <div id="programsCheckboxes" style="max-height:200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px ;"></div>
+                <!-- Added button to confirm program selection -->
+                <button onclick="showCourses()" style="margin-top: 10px;">Confirm Program Selection</button>
+            </div>
+
+            <!-- Course Section with Checkboxes -->
+            <div id="courseSection" style="display: none; margin-top: 20px;">
+                <label>Select Courses:</label>
+                <div id="coursesCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                    <!-- Dynamic checkboxes will appear here -->
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generateBtn" onclick="generateTimetable()" style="margin-top: 20px; display: none;">Generate Timetable</button>
+        </div>
+    </div>
+    <script>
+        function checkLoginStatus() {
+            if (localStorage.getItem("isLoggedIn") !== "true") {
+                alert("Please log in first.");
+                window.location.href = "login1.html";
+            }
+        }
+        
+        function loadSelectedPrograms() {
+            const selectedPrograms = JSON.parse(localStorage.getItem("selectedPrograms") || "[]");
+            if (selectedPrograms.length > 0) {
+                document.getElementById("programSection").style.display = "none";
+                document.getElementById("courseSection").style.display = "block";
+                document.getElementById("generateBtn").style.display = "block";
+                document.getElementById("content-area").querySelector("h3").style.display = "none";
+                loadCourses(selectedPrograms);
+            }
+        }
+        
+        function showPrograms() {
+            document.getElementById("programSection").style.display = "block";
+            document.getElementById("courseSection").style.display = "none";
+            document.getElementById("generateBtn").style.display = "none";
+            document.getElementById("content-area").querySelector("h3").style.display = "none";
+        
+            fetch('http://127.0.0.1:5000/get_programs', {
+    credentials: 'include'
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+})
+.then(programs => {
+    console.log('Received programs:', programs); // Log the received data
+    const programsContainer = document.getElementById("programsCheckboxes");
+    if (!programsContainer) {
+        throw new Error("programsCheckboxes element not found");
+    }
+    programsContainer.innerHTML = '';
+    // const selectedPrograms = JSON.parse(localStorage.getItem("selectedPrograms") || []);
+    const selectedPrograms = [];
+
+    programs.forEach(program => {
+        if (!program.program_id || !program.name) {
+            console.error('Invalid program data:', program);
+            return;
+        }
+        const div = document.createElement("div");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = program.program_id;
+        checkbox.id = `program-${program.program_id}`;
+        if (selectedPrograms.includes(String(program.program_id))) {
+            checkbox.checked = true;
+        }
+
+        const label = document.createElement("label");
+        label.htmlFor = checkbox.id;
+        label.textContent = program.name;
+
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        programsContainer.appendChild(div);
+    });
+})
+.catch(error => {
+    console.error('Error loading programs:', error);
+    document.getElementById("programsCheckboxes").innerHTML = `Error loading programs: ${error.message}`;
+    });
+}
+
+        
+        function showCourses() {
+            const programCheckboxes = document.querySelectorAll('#programsCheckboxes input[type="checkbox"]');
+            const selectedPrograms = Array.from(programCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+        
+            if (selectedPrograms.length === 0) {
+                alert("Please select at least one program.");
+                return;
+            }
+        
+            localStorage.setItem("selectedPrograms", JSON.stringify(selectedPrograms));
+            document.getElementById("programSection").style.display = "none";
+            document.getElementById("courseSection").style.display = "block";
+            document.getElementById("generateBtn").style.display = "block";
+            document.getElementById("content-area").querySelector("h3").style.display = "none";
+        
+            loadCourses(selectedPrograms);
+        }
+        
+        async function loadCourses(programIds) {
+            const checkboxesDiv = document.getElementById("coursesCheckboxes");
+            checkboxesDiv.innerHTML = "Loading program structure...";
+        
+            try {
+                const res = await fetch('http://127.0.0.1:5000/get_courses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ program_ids: programIds })
+                });
+        
+                if (!res.ok) {
+                    throw new Error(`Server responded with status: ${res.status}`);
+                }
+        
+                const courses = await res.json();
+        
+                checkboxesDiv.innerHTML = '';
+                courses.forEach(course => {
+                    const div = document.createElement("div");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.value = course.course_code;
+                    checkbox.id = `course-${course.course_code}`;
+        
+                    const label = document.createElement("label");
+                    label.htmlFor = checkbox.id;
+                    label.textContent = `${course.name} (${course.course_code})`;
+        
+                    div.appendChild(checkbox);
+                    div.appendChild(label);
+                    checkboxesDiv.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error loading courses:", error);
+                checkboxesDiv.innerHTML = "Error loading courses.";
+            }
+        }
+        
+        document.getElementById("generateBtn").addEventListener("click", async () => {
+            const selectedPrograms = JSON.parse(localStorage.getItem("selectedPrograms") || "[]");
+            const selectedCourses = Array.from(document.querySelectorAll('#coursesCheckboxes input[type="checkbox"]'))
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+        
+            if (selectedCourses.length === 0) {
+                alert("Please select at least one course.");
+                return;
+            }
+        
+            try {
+                const generateRes = await fetch('http://127.0.0.1:5000/generate_timetable', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        program_ids: selectedPrograms,
+                        course_codes: selectedCourses
+                    })
+                });
+        
+                if (!generateRes.ok) {
+                    const errorData = await generateRes.json();
+                    throw new Error(errorData.message || `Server responded with status: ${generateRes.status}`);
+                }
+        
+                const result = await generateRes.json();
+        
+                if (result.message === 'Timetable generated successfully!') {
+                    alert("Timetable generated successfully for selected programs!");
+                    window.location.href = "timetable.html";
+                } else {
+                    alert(`Generation failed: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error generating timetable: ${error.message}`);
+            }
+        });
+        
+        document.getElementById("logoutBtn").addEventListener("click", function () {
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("selectedPrograms");
+            window.location.href = "login1.html";
+        });
+        </script>
+        
+        
+    
+       
+</body>
+</html>

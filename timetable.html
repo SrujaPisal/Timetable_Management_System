@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timetable</title>
+    <link rel="stylesheet" href="timetable.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Timetable Views</h2>
+            <button onclick="showTimetable('week')">Week-wise (Semester)</button>
+            <button onclick="showTimetable('professor')">Professor-wise</button>
+            <button onclick="showTimetable('room')">Room-wise</button>
+        </div>
+
+        <div class="main-content">
+            <h1>Timetable</h1>
+
+            <!-- Program Dropdown (only visible for week view) -->
+            <div id="program-dropdown">
+                <label for="program-select">Select Program:</label>
+                <select id="program-select">
+                    <option value="">Select a Program</option>
+                </select>
+            </div>
+
+            <!-- Week-wise View -->
+            <div id="week" class="timetable">
+                <h3>Week-wise Timetable (Semester)</h3>
+                <div id="week-timetable-container"></div>
+                <button id="download-program-pdf">Download as PDF</button>
+            </div>
+
+            <!-- Professor-wise View -->
+            <div id="professor" class="timetable" style="display: none;">
+                <h3>Professor-wise Timetable</h3>
+                <label for="professor-select">Select Professor:</label>
+                <select id="professor-select">
+                    <option value="">Select a Professor</option>
+                </select>
+                <div id="professor-timetable-container"></div>
+                <button id="download-professor-pdf">Download as PDF</button>
+            </div>
+
+            <!-- Room-wise View -->
+            <div id="room" class="timetable" style="display: none;">
+                <h3>Room-wise Timetable</h3>
+                <label for="room-select">Select Room:</label>
+                <select id="room-select">
+                    <option value="">Select a Room</option>
+                </select>
+                <div id="room-timetable-container"></div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+    <script>
+        // Mapping slot numbers to time ranges
+        const slotToTime = {
+            1: '8:30-9:30', 2: '9:30-10:30', 3: '10:45-11:45', 4: '11:45-12:45',
+            5: '1:30-2:30', 6: '2:30-3:30', 7: '3:30-4:30', 8: '4:30-5:30'
+        };
+
+        async function fetchPrograms() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/get_programs');
+        const programs = await response.json();
+        const select = document.getElementById('program-select');
+        select.innerHTML = '<option value="">Select a Program</option>';
+        programs.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.program_id;
+            option.textContent = p.name;
+            select.appendChild(option);
+        });
+
+        const saved = localStorage.getItem("selectedProgram");
+        if (saved) {
+            select.value = saved;
+            loadProgramTimetable();  // Automatically load the timetable if saved program exists
+        }
+    } catch (error) {
+        console.error("Error loading programs:", error);
+    }
+}
+
+async function loadProgramTimetable() {
+    const programId = document.getElementById('program-select').value;
+    if (!programId) return;
+    localStorage.setItem("selectedProgram", programId);
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/view_timetable/${programId}`);
+        const { days, timeslots, week_timetable } = await res.json();
+
+        const container = document.getElementById('week-timetable-container');
+        let html = '<table border="1"><thead><tr><th>Time</th>';
+        days.forEach(day => html += `<th>${day}</th>`);
+        html += '</tr></thead><tbody>';
+
+        timeslots.forEach(slot => {
+            html += `<tr><td>${slot}</td>`;
+            days.forEach(day => {
+                const entry = week_timetable[day][slot];
+                html += entry
+                    ? `<td>${entry.course}<br><small>${entry.professor}</small><br><span style="font-size:10px;">Room: ${entry.room}</span></td>`
+                    : `<td>Free</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error("Error loading program timetable:", error);
+    }
+}
+async function loadRooms() {
+    try {
+        const res = await fetch('http://127.0.0.1:5000/get_rooms');
+        const data = await res.json();
+        const roomSelect = document.getElementById('room-select');
+        roomSelect.innerHTML = '<option value="">Select Room</option>';
+
+        data.forEach(room => {
+            const option = document.createElement('option');
+            option.value = room.room_no;
+            option.textContent = room.room_no;  // Show only room_no since name is not available
+            roomSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading rooms:', error);
+    }
+}
+
+async function loadProfessors() {
+    try {
+        // Fetching professor data
+        const res = await fetch('http://127.0.0.1:5000/get_professors');
+        const data = await res.json();
+
+        console.log('Professors Data:', data); // Check if the response is correct in console
+        
+        // Get the professor dropdown element
+        const select = document.getElementById('professor-select');
+        
+        // Clear previous options
+        select.innerHTML = '<option value="">Select a Professor</option>';
+        
+        // Loop through each professor and add them as options
+        data.forEach(p => {
+            console.log(`Adding professor: ${p.name}, ID: ${p.prof_id}`); // Check if each professor is being added
+            const option = document.createElement('option');
+            option.value = p.prof_id;  // Correct 'prof_id' mapping here
+            option.textContent = p.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error loading professors:", error);
+    }
+}
+
+function renderProfessorTimetable(data, containerId) {
+    const container = document.getElementById(containerId);
+    const days = data.days;
+    const timetable = data.timetable;
+
+    let html = '<table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; width: 100%; text-align: center;">';
+    html += '<thead><tr><th style="background-color:#1d1b3f; color: white;">Time</th>';
+    days.forEach(day => {
+        html += `<th style="background-color:#1d1b3f; color: white;">${day}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    timetable.forEach(row => {
+        const slotNum = parseInt(row.slot);
+        html += `<tr><td style="font-weight: bold;">${slotToTime[slotNum]}</td>`;
+        days.forEach(day => {
+            const value = row[day];
+            if (value) {
+                const match = value.match(/\((.*?)\)/);
+                html += `<td>${match ? match[1] : value} - ${value.split('- Room:')[1] || ''}</td>`;
+            } else {
+                html += `<td>Free</td>`;
+            }
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+async function loadProfessorTimetable() {
+    const professorSelect = document.getElementById('professor-select');
+    const professorName = professorSelect.options[professorSelect.selectedIndex].text;
+    if (professorName === "Select a Professor") return;
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/view_professor_timetable/${encodeURIComponent(professorName)}`);
+        const data = await res.json();
+        renderProfessorTimetable(data, 'professor-timetable-container');
+    } catch (error) {
+        console.error("Error loading professor timetable:", error);
+    }
+}
+
+
+async function loadRoomTimetable() {
+    const id = document.getElementById('room-select').value;
+    if (!id) return;
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/view_room_timetable/${id}`);
+        const data = await res.json();
+        renderRoomTimetable(data, 'room-timetable-container');
+    } catch (error) {
+        console.error("Error loading room timetable:", error);
+    }
+}
+function renderRoomTimetable(data, containerId) {
+    const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = Object.keys(data.timetable).sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+    const slots = [...new Set([].concat(...Object.values(data.timetable)).map(entry => entry.slot))].sort((a, b) => a - b);
+
+    let html = '<table border="1"><thead><tr><th>Time</th>';
+    days.forEach(day => html += `<th>${day}</th>`);
+    html += '</tr></thead><tbody>';
+
+    slots.forEach(slot => {
+        html += `<tr><td>${slotToTime[slot]}</td>`;
+        days.forEach(day => {
+            const entry = data.timetable[day]?.find(e => e.slot === slot);
+            html += entry
+                ? `<td>${entry.program}<br><small>Slot: ${slot}</small></td>`
+                : `<td>Free</td>`;
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById(containerId).innerHTML = html;
+}
+
+function renderTimetable(data, containerId) {
+    const { days, timeslots, timetable } = data;
+    let html = '<table border="1"><thead><tr><th>Time</th>';
+    days.forEach(day => html += `<th>${day}</th>`);
+    html += '</tr></thead><tbody>';
+
+    timeslots.forEach(slot => {
+        html += `<tr><td>${slot}</td>`;
+        days.forEach(day => {
+            const entry = timetable[day]?.[slot];
+            html += entry
+                ? `<td>${entry.course}<br><small>${entry.program || entry.professor}</small><br><span style="font-size:10px;">Room: ${entry.room}</span></td>`
+                : `<td>Free</td>`;
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById(containerId).innerHTML = html;
+}
+
+function showTimetable(viewId) {
+    ['week', 'professor', 'room'].forEach(id => {
+        document.getElementById(id).style.display = id === viewId ? 'block' : 'none';
+    });
+
+    document.getElementById('program-dropdown').style.display = (viewId === 'week') ? 'block' : 'none';
+
+    if (viewId === 'week') {
+        fetchPrograms();
+    } else if (viewId === 'professor') {
+        loadProfessors();
+    } else if (viewId === 'room') {
+        loadRooms();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchPrograms();
+    showTimetable('week');
+    document.getElementById('program-select').addEventListener('change', loadProgramTimetable);
+    document.getElementById('professor-select').addEventListener('change', loadProfessorTimetable);
+    document.getElementById('room-select').addEventListener('change', loadRoomTimetable);
+});
+// Add event listeners for PDF download buttons
+document.getElementById('download-program-pdf').addEventListener('click', downloadProgramPdf);
+document.getElementById('download-professor-pdf').addEventListener('click', downloadProfessorPdf);
+
+function downloadProgramPdf() {
+    console.log("Download program PDF button clicked");
+    const programId = document.getElementById('program-select').value;
+    if (!programId) return;
+
+    const timetableElement = document.getElementById('week-timetable-container');
+    html2canvas(timetableElement).then((canvas) => {
+        console.log("Canvas generated");
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF('l', 'mm', [297, 210]); // A4 Landscape
+        const imgWidth = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const pageHeight = 210; // A4 page height in mm
+        const pages = Math.ceil(imgHeight / pageHeight);
+
+        for (let i = 0; i < pages; i++) {
+            const pageData = canvas.getContext('2d').getImageData(0, i * (canvas.height / pages), canvas.width, canvas.height / pages);
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = canvas.height / pages;
+            pageCanvas.getContext('2d').putImageData(pageData, 0, 0);
+            const pageImgData = pageCanvas.toDataURL('image/png');
+            if (i > 0) pdf.addPage();
+            pdf.addImage(pageImgData, 'PNG', 0, 0, imgWidth, pageHeight);
+        }
+
+        pdf.save(`program-timetable-${programId}.pdf`);
+        console.log("PDF saved");
+    }).catch((error) => {
+        console.error("Error generating PDF:", error);
+    });
+}
+
+function downloadProfessorPdf() {
+    console.log("Download professor PDF button clicked");
+    const professorSelect = document.getElementById('professor-select');
+    const professorName = professorSelect.options[professorSelect.selectedIndex].text;
+    if (!professorName) return;
+
+    const timetableElement = document.getElementById('professor-timetable-container');
+    html2canvas(timetableElement).then((canvas) => {
+        console.log("Canvas generated");
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF('l', 'mm', [297, 210]); // A4 Landscape
+        const imgWidth = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const pageHeight = 210; // A4 page height in mm
+        const pages = Math.ceil(imgHeight / pageHeight);
+
+        for (let i = 0; i < pages; i++) {
+            const pageData = canvas.getContext('2d').getImageData(0, i * (canvas.height / pages), canvas.width, canvas.height / pages);
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = canvas.height / pages;
+            pageCanvas.getContext('2d').putImageData(pageData, 0, 0);
+            const pageImgData = pageCanvas.toDataURL('image/png');
+            if (i > 0) pdf.addPage();
+            pdf.addImage(pageImgData, 'PNG', 0, 0, imgWidth, pageHeight);
+        }
+
+        pdf.save(`professor-timetable-${professorName}.pdf`);
+        console.log("PDF saved");
+    }).catch((error) => {
+        console.error("Error generating PDF:", error);
+    });
+}
+    </script>
+</body>
+</html>
