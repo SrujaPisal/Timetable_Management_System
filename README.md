@@ -44,5 +44,3 @@ An intelligent **Timetable Management System** that generates **clash-free acade
 | Authentication | SHA-256 hashing |
 
 ---
-
-## 📂 Project Structure
